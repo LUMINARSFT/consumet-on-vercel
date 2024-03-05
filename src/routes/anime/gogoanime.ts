@@ -14,8 +14,13 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
         '/info/:id',
         '/watch/:episodeId',
         '/servers/:episodeId',
+        '/genre/:genre',
+        '/genre/list',
         '/top-airing',
+        '/movies',
+        '/popular',
         '/recent-episodes',
+        '/anime-list',
       ],
       documentation: 'https://docs.consumet.org/#tag/gogoanime',
     });
@@ -53,6 +58,19 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
     try {
       const res = await gogoanime
         .fetchGenreInfo(genre, page)
+        .catch((err) => reply.status(404).send({ message: err }));
+      reply.status(200).send(res);
+    } catch {
+      reply
+        .status(500)
+        .send({ message: 'Something went wrong. Please try again later.' });
+    }
+  });
+
+  fastify.get('/genre/list', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const res = await gogoanime
+        .fetchGenreList()
         .catch((err) => reply.status(404).send({ message: err }));
       reply.status(200).send(res);
     } catch {
@@ -119,6 +137,34 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
     }
   });
 
+  fastify.get('/movies', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const page = (request.query as { page: number }).page;
+
+      const res = await gogoanime.fetchRecentMovies(page);
+
+      reply.status(200).send(res);
+    } catch (err) {
+      reply
+        .status(500)
+        .send({ message: 'Something went wrong. Contact developers for help.' });
+    }
+  });
+
+  fastify.get('/popular', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const page = (request.query as { page: number }).page;
+
+      const res = await gogoanime.fetchPopular(page);
+
+      reply.status(200).send(res);
+    } catch (err) {
+      reply
+        .status(500)
+        .send({ message: 'Something went wrong. Contact developers for help.' });
+    }
+  });
+
   fastify.get(
     '/recent-episodes',
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -127,6 +173,22 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
         const page = (request.query as { page: number }).page;
 
         const res = await gogoanime.fetchRecentEpisodes(page, type);
+
+        reply.status(200).send(res);
+      } catch (err) {
+        reply
+          .status(500)
+          .send({ message: 'Something went wrong. Contact developers for help.' });
+      }
+    },
+  );
+  fastify.get(
+    '/anime-list',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const page = (request.query as { page: number }).page;
+
+        const res = await gogoanime.fetchAnimeList(page);
 
         reply.status(200).send(res);
       } catch (err) {
